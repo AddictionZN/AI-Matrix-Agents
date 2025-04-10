@@ -1,0 +1,2 @@
+This file copied into the container along with environment-ym* from the parent folder. 
+This file is included to prevents the Dockerfile COPY instruction from failing if no environment.yml is found.
