@@ -7,8 +7,7 @@ from prompts.prompt_revenue_modeling import (
     get_revenue_modeling_prompt
 )
 
-# Example tool imports if they exist in your codebase:
-from tools.bing_search import bing_search
+# Example data-gathering tools; replace or extend as needed.
 from tools.yahoo_finance import (
     yahoo_finance_market_data,
     yahoo_finance_financials,
@@ -18,19 +17,18 @@ from tools.yahoo_finance import (
 
 logger = logging.getLogger(__name__)
 
-
 class RevenueModelingAgent(BaseAgent):
     """
-    Agent specialized in generating revenue modeling and pricing strategies.
+    Agent specialized in generating revenue models, pricing strategies,
+    and selecting a recommended strategy for a given project.
     """
 
     def get_tools(self) -> List:
         """
-        Return tools for gathering market data, competitor revenue patterns, and pricing benchmarks.
+        Returns a list of data-gathering tools for market analysis and competitor research.
         """
-        logger.info("Registering tools with RevenueModelingAgent")
+        logger.info("Registering tools for RevenueModelingAgent.")
         return [
-            bing_search,
             yahoo_finance_market_data,
             yahoo_finance_financials,
             yahoo_market_sizing,
@@ -39,7 +37,7 @@ class RevenueModelingAgent(BaseAgent):
 
     def get_system_prompt(self) -> str:
         """
-        Return the specialized system prompt for revenue modeling.
+        The system prompt instructing the LLM on how to build revenue models.
         """
         return REVENUE_MODELING_SYSTEM_PROMPT
 
@@ -51,15 +49,11 @@ class RevenueModelingAgent(BaseAgent):
         additional_context: Optional[str] = None
     ) -> str:
         """
-        Format the input for the revenue modeling agent.
-
-        Note:
-          - project_description and industry are inherited from BaseAgent
-            but not necessarily used here. Use them if relevant to add context.
+        Format the prompt input. BaseAgent requires these parameters,
+        but project_description and industry may not be used if not needed.
         """
-        logger.info(f"Creating revenue modeling prompt for project: {project_name}")
+        logger.info(f"Creating revenue modeling prompt for project: {project_name}.")
         return get_revenue_modeling_prompt(project_name, additional_context)
-
 
 def generate_revenue_models(
     project_name: str,
@@ -67,20 +61,20 @@ def generate_revenue_models(
     streaming: bool = False
 ) -> Dict[str, Any]:
     """
-    Convenience function to generate multiple revenue models and a final recommendation.
+    High-level function to create revenue models for the specified project.
 
     Args:
-        project_name (str): Name of the project.
-        additional_context (Optional[str]): Extra context or details for the modeling.
-        streaming (bool): Whether to stream output.
+        project_name (str): The name of the project.
+        additional_context (Optional[str]): Additional context or instructions.
+        streaming (bool): Whether to stream the model's output.
 
     Returns:
-        Dict[str, Any]: The generated revenue models and recommended strategy.
+        Dict[str, Any]: A dictionary containing the generated revenue models, recommendation, etc.
     """
     agent = RevenueModelingAgent(streaming=streaming)
     return agent.generate(
         project_name=project_name,
-        project_description="",  # Not used, but required by BaseAgent
-        industry="",            # Not used, but required by BaseAgent
+        project_description="",
+        industry="",
         additional_context=additional_context
     )

@@ -2,69 +2,60 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from langchain.output_parsers import PydanticOutputParser
 
+
 class RevenueStrategy(BaseModel):
-    """
-    Represents a specific revenue model or strategy, including its name,
-    a brief description or assumptions, and potential monthly revenue projections.
-    """
-    model_name: str = Field(..., description="Name of the revenue model (e.g., 'Price per Click').")
-    description: str = Field(..., description="A brief description of how this model works.")
+    model_name: str = Field(..., description="Name of the revenue model (e.g., 'Subscription').")
+    description: str = Field(..., description="Brief explanation of the revenue model.")
     monthly_revenue_projection: List[float] = Field(
-        ...,
-        description="A list of monthly revenue projections (e.g., for 5 months)."
+        ..., description="Monthly revenue projections (e.g., for 5 months)."
     )
-    total_revenue: float = Field(..., description="Sum of the projected monthly revenues.")
+    total_revenue: float = Field(..., description="Total revenue over the projection period.")
 
 
 class RevenueModelOutput(BaseModel):
-    """
-    Overall structure containing multiple revenue strategies for a project,
-    along with a recommended approach or final conclusion.
-    """
-    project_name: str = Field(..., description="Name of the project.")
-    strategies: List[RevenueStrategy] = Field(..., description="List of possible revenue models.")
-    recommended_strategy: str = Field(..., description="A recommendation on which strategy to pursue and why.")
-    notes: Optional[str] = Field(None, description="Any additional notes or considerations.")
+    project_name: str = Field(..., description="Project name.")
+    strategies: List[RevenueStrategy] = Field(..., description="List of revenue strategies.")
+    recommended_strategy: str = Field(..., description="The recommended revenue strategy.")
+    notes: Optional[str] = Field(None, description="Additional notes or considerations.")
 
 
 # Create an output parser to enforce the JSON schema.
 output_parser = PydanticOutputParser(pydantic_object=RevenueModelOutput)
 
-# System prompt providing high-level guidance for revenue modeling.
-REVENUE_MODELING_SYSTEM_PROMPT = (
-    "You are a revenue modeling and pricing strategy expert. You MUST gather current pricing strategies, "
-    "industry benchmarks, and relevant financial data using the provided tools before generating revenue models. "
-    "Use the following tools in this manner: "
-    "- Use the bing_search tool to understand market conditions, typical pricing strategies, and consumer behavior. "
-    "- Use the yahoo_finance_market_data tool for any publicly available pricing or revenue data. "
-    "- Use the yahoo_finance_financials tool to benchmark against actual financials of comparable companies. "
-    "- Use the yahoo_market_sizing tool for overall market size and potential. "
-    "- Use the yahoo_industry_peers tool to see how competitors structure their revenue streams. "
-    "Your final output must be valid JSON following the schema exactly. Provide multiple revenue strategies, "
-    "their monthly projections for up to 5 months, and a final recommended strategy."
+REVENUE_MODELING_SYSTEM_PROMPT: str = (
+    "You are a revenue modeling expert. Gather current market data, pricing strategies, and financial benchmarks using available tools. "
+    "Provide multiple revenue strategies with monthly projections (for 5 months), compute totals, and recommend a viable strategy with rationale. "
+    "Return valid JSON strictly following the provided schema."
 )
 
-# Template for the human prompt that will request a revenue modeling plan.
-REVENUE_MODELING_PROMPT_TEMPLATE = (
-    "Generate a comprehensive set of revenue models for the project '{project_name}'. "
-    "Include multiple strategies (such as Base Price + Tier, Price per Click, Subscription, Bundle Pricing, Penetration Pricing) "
-    "with monthly revenue projections for 5 months and a total. "
-    "Finally, provide your recommendation on which strategy seems most viable, and explain why. "
-    "Use the following JSON schema exactly: {format_instructions}"
+REVENUE_MODELING_PROMPT_TEMPLATE: str = (
+    "Generate a comprehensive revenue model for the project '{project_name}'.\n\n"
+    "Steps:\n"
+    "1. Include multiple revenue strategies (e.g., 'Base Price + Tier', 'Price per Click', 'Subscription', 'Bundle Pricing', 'Penetration Pricing').\n"
+    "2. For each strategy, provide monthly revenue projections for 5 months and calculate the total revenue.\n"
+    "3. Recommend one strategy with an explanation of the rationale.\n\n"
+    "Return the result as valid JSON following this schema:\n{format_instructions}"
 )
 
 
 def get_revenue_modeling_prompt(
-    project_name: str,
+    project_name: str, 
     additional_context: Optional[str] = None
 ) -> str:
     """
-    Build and return the prompt that instructs the model to generate multiple pricing/revenue strategies.
+    Build and return the revenue modeling prompt.
+
+    Args:
+        project_name: Name of the project.
+        additional_context: Optional context; defaults to a generic message if not provided.
+
+    Returns:
+        A formatted prompt string.
     """
-    additional_context = additional_context or "No additional context provided."
+    context = additional_context or "No additional context provided."
     format_instructions = output_parser.get_format_instructions()
     prompt = REVENUE_MODELING_PROMPT_TEMPLATE.format(
         project_name=project_name,
         format_instructions=format_instructions
     )
-    return f"{prompt}\n\nAdditional Context: {additional_context}"
+    return f"{prompt}\n\nAdditional Context: {context}"
