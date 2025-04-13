@@ -4,7 +4,6 @@ from typing import Dict, Any, Optional, List
 from prompts.prompt_cost_estatimations import ESTIMATIONS_SYSTEM_PROMPT, get_estimations_human_prompt
 from base_agent import BaseAgent
 
-from tools.bing_search import bing_search
 from tools.yahoo_finance import (
     yahoo_finance_market_data,
     yahoo_finance_financials,
@@ -13,6 +12,7 @@ from tools.yahoo_finance import (
 )
 
 logger = logging.getLogger(__name__)
+
 
 class EstimationsAgent(BaseAgent):
     """
@@ -29,7 +29,6 @@ class EstimationsAgent(BaseAgent):
         """
         logger.info("Registering tools with EstimationsAgent")
         return [
-            bing_search,
             yahoo_finance_market_data,
             yahoo_finance_financials,
             yahoo_market_sizing,

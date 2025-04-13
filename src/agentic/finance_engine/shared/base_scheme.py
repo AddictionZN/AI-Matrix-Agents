@@ -1,11 +1,9 @@
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, Optional, Any
 from pydantic import BaseModel, Field
 
 
 class AdditionalContext(BaseModel):
-    """
-    Structured model for additional context information.
-    """
+    industry: str = Field(..., description="Industry sector of the project")
     market_size: Optional[str] = Field(None, description="Target market size")
     timeframe: Optional[str] = Field(None, description="Project timeframe")
     financial_goals: Optional[str] = Field(None, description="Financial goals and targets")
@@ -22,28 +20,26 @@ class AdditionalContext(BaseModel):
 
 
 class BaseFinancialRequest(BaseModel):
-    """
-    Base model with common fields for all financial analysis requests.
-    """
+
     project_name: str = Field(..., description="Name of the project")
     project_description: str = Field(..., description="Brief description of the project")
-    industry: str = Field(..., description="Industry sector of the project")
-    additional_context: Optional[
-        Union[AdditionalContext, Dict[str, Any]]
-    ] = Field(None, description="Additional contextual information for the analysis")
+    additional_context: Optional[AdditionalContext] = Field(
+        None, description="Additional contextual information for the analysis"
+    )
 
     class Config:
         schema_extra = {
             "example": {
                 "project_name": "EcoTech Smart Home System",
                 "project_description": "IoT-based smart home system focused on energy efficiency and sustainability",
-                "industry": "Consumer Electronics",
                 "additional_context": {
+                    "industry": "Consumer Electronics",
                     "market_size": "$50 billion annually",
                     "timeframe": "24 months",
                     "financial_goals": "Break-even within 18 months",
                     "initial_investment": "$750,000",
-                    "project_scale": "Medium"
+                    "project_scale": "Medium",
+                    "other_details": {}
                 }
             }
         }
